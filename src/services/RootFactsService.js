@@ -15,10 +15,14 @@ export class RootFactsService {
 
   async loadModel(onProgress = null) {
     try {
-      this.currentBackend = navigator.gpu ? 'webgpu' : 'cpu';
+      this.currentBackend =
+        navigator.gpu ? 'webgpu' : 'cpu';
 
       if (onProgress) {
-        onProgress(30, 'Menyiapkan AI generator...');
+        onProgress(
+          30,
+          'Menyiapkan AI generator...',
+        );
       }
 
       try {
@@ -35,17 +39,26 @@ export class RootFactsService {
       this.isModelLoaded = true;
 
       if (onProgress) {
-        onProgress(100, 'Generator Fakta Siap');
+        onProgress(
+          100,
+          'Generator Fakta Siap',
+        );
       }
 
       return true;
     } catch (error) {
-      console.error('DETAIL ERROR AI:', error);
+      console.error(
+        'DETAIL ERROR AI:',
+        error,
+      );
 
       this.isModelLoaded = true;
 
       if (onProgress) {
-        onProgress(100, 'Generator Fakta Siap');
+        onProgress(
+          100,
+          'Generator Fakta Siap',
+        );
       }
 
       return true;
@@ -53,9 +66,10 @@ export class RootFactsService {
   }
 
   setTone(tone) {
-    const availableTone = TONE_CONFIG.availableTones.find(
-      (item) => item.value === tone,
-    );
+    const availableTone =
+      TONE_CONFIG.availableTones.find(
+        (item) => item.value === tone,
+      );
 
     if (availableTone) {
       this.currentTone = tone;
@@ -77,7 +91,10 @@ export class RootFactsService {
         `Ceritakan fakta santai dan menarik tentang ${vegetableName}.`,
     };
 
-    return prompts[this.currentTone] || prompts.normal;
+    return (
+      prompts[this.currentTone] ||
+      prompts.normal
+    );
   }
 
   async generateFacts(vegetableName) {
@@ -120,30 +137,44 @@ export class RootFactsService {
           'Paprika memiliki kandungan vitamin C yang sangat tinggi.',
       };
 
+      const fallbackText =
+        fallbackFacts[vegetableName] ||
+        `${vegetableName} merupakan sayuran yang baik untuk kesehatan tubuh.`;
+
       if (!this.generator) {
-        return (
-          fallbackFacts[vegetableName] ||
-          `${vegetableName} merupakan sayuran yang baik untuk kesehatan tubuh.`
-        );
+        return fallbackText;
       }
 
-      const prompt = this.buildPrompt(vegetableName);
+      const prompt =
+        this.buildPrompt(vegetableName);
 
-      const result = await this.generator(prompt, {
-        max_new_tokens: 50,
-        temperature: 0.7,
-        top_p: 0.9,
-        do_sample: true,
-      });
+      const result = await this.generator(
+        prompt,
+        {
+          max_new_tokens: 50,
+          temperature: 0.7,
+          top_p: 0.9,
+          do_sample: true,
+        },
+      );
 
-      const generatedText =
-        result?.[0]?.generated_text ||
-        fallbackFacts[vegetableName] ||
-        `${vegetableName} kaya nutrisi penting.`;
+      let generatedText =
+        result?.[0]?.generated_text || '';
+
+      generatedText = generatedText
+        .replace(prompt, '')
+        .trim();
+
+      if (!generatedText) {
+        generatedText = fallbackText;
+      }
 
       return generatedText;
     } catch (error) {
-      console.error('Generate fact error:', error);
+      console.error(
+        'Generate fact error:',
+        error,
+      );
 
       return `${vegetableName} merupakan sayuran yang baik untuk kesehatan tubuh.`;
     } finally {
