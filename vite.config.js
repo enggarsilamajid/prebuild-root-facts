@@ -10,46 +10,47 @@ export default defineConfig({
       registerType: 'autoUpdate',
 
       includeAssets: [
-        'favicon.ico',
-        'apple-touch-icon.png',
-        'icons/icon-192x192.png',
-        'icons/icon-512x512.png',
+        'favicon.svg',
+        'robots.txt',
       ],
 
       manifest: {
         name: 'RootFacts App',
         short_name: 'RootFacts',
-        description: 'AI Vegetable Detection and Fun Facts',
+        description:
+          'AI Vegetable Detection and Fun Facts App',
+
         theme_color: '#16a34a',
+
         background_color: '#ffffff',
+
         display: 'standalone',
-        orientation: 'portrait',
+
         start_url: '/',
-        scope: '/',
+
         icons: [
           {
-            src: '/icons/icon-192x192.png',
+            src: '/icons/icon-192.png',
             sizes: '192x192',
             type: 'image/png',
           },
           {
-            src: '/icons/icon-512x512.png',
+            src: '/icons/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
-          },
-          {
-            src: '/icons/icon-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable',
           },
         ],
       },
 
       workbox: {
         cleanupOutdatedCaches: true,
+
         clientsClaim: true,
+
         skipWaiting: true,
+
+        maximumFileSizeToCacheInBytes:
+          10 * 1024 * 1024,
 
         globPatterns: [
           '**/*.{js,css,html,ico,png,svg,json,bin}',
@@ -57,13 +58,12 @@ export default defineConfig({
 
         runtimeCaching: [
           {
-            urlPattern: ({ url }) =>
-              url.pathname.includes('/model/'),
+            urlPattern: /^https:\/\/huggingface\.co\/.*/i,
 
             handler: 'CacheFirst',
 
             options: {
-              cacheName: 'rootfacts-model-cache',
+              cacheName: 'huggingface-model-cache',
 
               expiration: {
                 maxEntries: 20,
@@ -79,7 +79,7 @@ export default defineConfig({
       },
 
       devOptions: {
-        enabled: true,
+        enabled: false,
       },
     }),
   ],
@@ -87,9 +87,5 @@ export default defineConfig({
   server: {
     port: 3001,
     host: true,
-  },
-
-  build: {
-    sourcemap: false,
   },
 });
