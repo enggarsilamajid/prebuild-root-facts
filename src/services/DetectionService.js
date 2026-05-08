@@ -11,12 +11,17 @@ export class DetectionService {
 
   async loadModel(onProgress = null) {
     try {
-      if (navigator.gpu) {
-        await tf.setBackend('webgpu');
-        this.backend = 'webgpu';
-      } else {
-        await tf.setBackend('webgl');
-        this.backend = 'webgl';
+      try {
+        if (navigator.gpu) {
+          await tf.setBackend('webgpu');
+          this.backend = 'webgpu';
+        } else {
+          await tf.setBackend('webgl');
+          this.backend = 'webgl';
+        }
+      } catch (error) {
+        await tf.setBackend('cpu');
+        this.backend = 'cpu';
       }
 
       await tf.ready();
@@ -30,11 +35,18 @@ export class DetectionService {
           onProgress: (fraction) => {
             if (onProgress) {
               const percent = Math.round(15 + (fraction * 70));
-              onProgress(percent, `Memuat model deteksi... ${percent}%`);
+
+              onProgress(
+                percent,
+                `Memuat model deteksi... ${percent}%`,
+              );
             }
           },
         }),
-        fetch('/model/metadata.json').then((response) => response.json()),
+
+        fetch('/model/metadata.json').then((response) =>
+          response.json(),
+        ),
       ]);
 
       this.model = model;
