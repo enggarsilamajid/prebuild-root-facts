@@ -47,19 +47,9 @@ export class RootFactsService {
 
       return true;
     } catch (error) {
-      console.error(
-        'DETAIL ERROR AI:',
-        error,
-      );
+      console.error(error);
 
       this.isModelLoaded = true;
-
-      if (onProgress) {
-        onProgress(
-          100,
-          'Generator Fakta Siap',
-        );
-      }
 
       return true;
     }
@@ -76,25 +66,83 @@ export class RootFactsService {
     }
   }
 
-  buildPrompt(vegetableName) {
-    const prompts = {
-      normal:
-        `Berikan satu fakta menarik singkat tentang ${vegetableName}.`,
+  getBaseFact(vegetableName) {
+    const facts = {
+      Beetroot:
+        'Bit kaya antioksidan alami yang baik untuk kesehatan tubuh.',
 
-      funny:
-        `Berikan fakta lucu tentang ${vegetableName} dalam satu kalimat.`,
+      Paprika:
+        'Paprika memiliki kandungan vitamin C yang sangat tinggi.',
 
-      professional:
-        `Berikan fakta ilmiah singkat tentang ${vegetableName}.`,
+      Cabbage:
+        'Kubis rendah kalori tetapi kaya vitamin dan serat.',
 
-      casual:
-        `Ceritakan fakta santai dan menarik tentang ${vegetableName}.`,
+      Carrot:
+        'Wortel terkenal karena kandungan beta-karoten yang baik untuk mata.',
+
+      Cauliflower:
+        'Kembang kol kaya serat dan nutrisi penting.',
+
+      Chilli:
+        'Cabai mengandung capsaicin yang memberikan rasa pedas.',
+
+      Corn:
+        'Jagung menjadi sumber energi karena kaya karbohidrat.',
+
+      Cucumber:
+        'Mentimun memiliki kandungan air tinggi yang menyegarkan tubuh.',
+
+      eggplant:
+        'Terong mengandung antioksidan yang baik untuk kesehatan.',
+
+      Garlic:
+        'Bawang putih dikenal memiliki manfaat antibakteri alami.',
+
+      Ginger:
+        'Jahe sering digunakan untuk membantu menghangatkan tubuh.',
+
+      Lettuce:
+        'Selada sering digunakan sebagai sayuran segar dalam salad.',
+
+      Onion:
+        'Bawang mengandung senyawa alami yang baik untuk tubuh.',
+
+      Peas:
+        'Kacang polong kaya protein nabati dan serat.',
+
+      Potato:
+        'Kentang merupakan sumber karbohidrat yang populer.',
+
+      Turnip:
+        'Turnip atau lobak kaya vitamin dan rendah kalori.',
+
+      Soybean:
+        'Kedelai menjadi bahan utama banyak makanan bergizi.',
+
+      Spinach:
+        'Bayam terkenal karena kandungan zat besinya.',
     };
 
     return (
-      prompts[this.currentTone] ||
-      prompts.normal
+      facts[vegetableName] ||
+      `${vegetableName} merupakan sayuran yang baik untuk kesehatan tubuh.`
     );
+  }
+
+  applyTone(text) {
+    switch (this.currentTone) {
+    case 'funny':
+      return `😄 Fun Fact: ${text}`;
+
+    case 'professional':
+      return `📘 Fakta Ilmiah: ${text}`;
+
+    case 'casual':
+      return `🌱 Tahukah kamu? ${text}`;
+
+    default:
+      return `✨ Fakta Menarik: ${text}`;
+    }
   }
 
   async generateFacts(vegetableName) {
@@ -105,78 +153,57 @@ export class RootFactsService {
     this.isGenerating = true;
 
     try {
-      const fallbackFacts = {
-        Carrot:
-          'Wortel kaya beta-karoten yang baik untuk kesehatan mata.',
-
-        Potato:
-          'Kentang mengandung karbohidrat yang menjadi sumber energi tubuh.',
-
-        Onion:
-          'Bawang memiliki senyawa alami yang sering digunakan dalam pengobatan tradisional.',
-
-        Garlic:
-          'Bawang putih dikenal memiliki aroma kuat dan manfaat antibakteri.',
-
-        Cabbage:
-          'Kubis rendah kalori tetapi kaya vitamin C.',
-
-        Spinach:
-          'Bayam terkenal karena kandungan zat besinya.',
-
-        Corn:
-          'Jagung termasuk sumber karbohidrat populer di berbagai negara.',
-
-        Cucumber:
-          'Mentimun memiliki kandungan air tinggi yang membantu menjaga hidrasi tubuh.',
-
-        Cauliflower:
-          'Kembang kol kaya serat dan vitamin yang baik untuk pencernaan.',
-
-        Paprika:
-          'Paprika memiliki kandungan vitamin C yang sangat tinggi.',
-      };
-
-      const fallbackText =
-        fallbackFacts[vegetableName] ||
-        `${vegetableName} merupakan sayuran yang baik untuk kesehatan tubuh.`;
+      const baseFact =
+        this.getBaseFact(
+          vegetableName,
+        );
 
       if (!this.generator) {
-        return fallbackText;
+        return this.applyTone(
+          baseFact,
+        );
       }
 
       const prompt =
-        this.buildPrompt(vegetableName);
+        `Ubah kalimat berikut menjadi lebih menarik tanpa mengubah makna: ${baseFact}`;
 
-      const result = await this.generator(
-        prompt,
-        {
-          max_new_tokens: 50,
-          temperature: 0.7,
-          top_p: 0.9,
-          do_sample: true,
-        },
-      );
+      const result =
+        await this.generator(
+          prompt,
+          {
+            max_new_tokens: 40,
+            temperature: 0.5,
+            top_p: 0.8,
+            do_sample: false,
+          },
+        );
 
       let generatedText =
         result?.[0]?.generated_text || '';
 
-      generatedText = generatedText
-        .replace(prompt, '')
-        .trim();
+      generatedText =
+        generatedText
+          .replace(prompt, '')
+          .trim();
 
-      if (!generatedText) {
-        generatedText = fallbackText;
+      if (
+        !generatedText ||
+        generatedText.length < 10
+      ) {
+        generatedText = baseFact;
       }
 
-      return generatedText;
-    } catch (error) {
-      console.error(
-        'Generate fact error:',
-        error,
+      return this.applyTone(
+        generatedText,
       );
+    } catch (error) {
+      console.error(error);
 
-      return `${vegetableName} merupakan sayuran yang baik untuk kesehatan tubuh.`;
+      return this.applyTone(
+        this.getBaseFact(
+          vegetableName,
+        ),
+      );
     } finally {
       this.isGenerating = false;
     }
