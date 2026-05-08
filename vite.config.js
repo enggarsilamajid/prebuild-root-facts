@@ -34,7 +34,7 @@ export default defineConfig({
 
         icons: [
           {
-            src: '/icons/icon-192.png',
+            src: 'icons/icon-192.png',
 
             sizes: '192x192',
 
@@ -42,7 +42,7 @@ export default defineConfig({
           },
 
           {
-            src: '/icons/icon-512.png',
+            src: 'icons/icon-512.png',
 
             sizes: '512x512',
 
@@ -62,24 +62,7 @@ export default defineConfig({
           10 * 1024 * 1024,
 
         globPatterns: [
-          '**/*.{js,css,html,ico,png,svg,json}',
-        ],
-
-        additionalManifestEntries: [
-          {
-            url: '/model/model.json',
-            revision: null,
-          },
-
-          {
-            url: '/model/weights.bin',
-            revision: null,
-          },
-
-          {
-            url: '/model/metadata.json',
-            revision: null,
-          },
+          '**/*.{js,css,html,ico,png,svg,json,bin}',
         ],
       },
 
