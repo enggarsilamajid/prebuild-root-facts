@@ -1,73 +1,102 @@
-import { useEffect, useRef, useState } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+
 import Header from './components/Header';
 import CameraSection from './components/CameraSection';
 import InfoPanel from './components/InfoPanel';
-import { useAppState } from './hooks/useAppState';
 
-import { DetectionService } from './services/DetectionService';
-import { CameraService } from './services/CameraService';
-import { RootFactsService } from './services/RootFactsService';
+import { useAppState }
+  from './hooks/useAppState';
 
-import { APP_CONFIG, isValidDetection } from './utils/config';
+import { DetectionService }
+  from './services/DetectionService';
+
+import { CameraService }
+  from './services/CameraService';
+
+import { RootFactsService }
+  from './services/RootFactsService';
+
+import {
+  APP_CONFIG,
+  isValidDetection,
+} from './utils/config';
 
 function App() {
-  const { state, actions } = useAppState();
+  const { state, actions } =
+    useAppState();
 
-  const detectionCleanupRef = useRef(null);
-  const isRunningRef = useRef(false);
-  const lastPredictionRef = useRef(null);
+  const detectionCleanupRef =
+    useRef(null);
 
-  const [currentTone, setCurrentTone] = useState('normal');
+  const isRunningRef =
+    useRef(false);
+
+  const [currentTone, setCurrentTone] =
+    useState('normal');
 
   useEffect(() => {
-    let mounted = true;
+    const initializeServices =
+      async () => {
+        try {
+          const detector =
+            new DetectionService();
 
-    const initializeServices = async () => {
-      try {
-        actions.setModelStatus('Menunggu Model AI...');
-        actions.setError(null);
+          const camera =
+            new CameraService();
 
-        const detector = new DetectionService();
-        const camera = new CameraService();
-        const generator = new RootFactsService();
+          const generator =
+            new RootFactsService();
 
-        actions.setServices({
-          detector,
-          camera,
-          generator,
-        });
+          actions.setModelStatus(
+            'Memuat model deteksi...',
+          );
 
-        await detector.loadModel((progress, message) => {
-          if (!mounted) return;
+          await detector.loadModel(
+            (progress, status) => {
+              actions.setModelStatus(
+                status,
+              );
+            },
+          );
 
-          actions.setModelStatus(message || `Memuat model... ${progress}%`);
-        });
+          actions.setModelStatus(
+            'Memuat AI generator...',
+          );
 
-        await generator.loadModel((progress, message) => {
-          if (!mounted) return;
+          await generator.loadModel(
+            (progress, status) => {
+              actions.setModelStatus(
+                status,
+              );
+            },
+          );
 
-          actions.setModelStatus(message || `Memuat AI... ${progress}%`);
-        });
+          actions.setServices({
+            detector,
+            camera,
+            generator,
+          });
 
-        if (!mounted) return;
+          actions.setModelStatus(
+            'Model AI Siap',
+          );
+        } catch (error) {
+          console.error(error);
 
-        actions.setModelStatus('Model AI Siap');
-      } catch (error) {
-        console.error(error);
-
-        actions.setError(error.message);
-        actions.setModelStatus('Gagal Memuat Model');
-      }
-    };
+          actions.setError(
+            'Gagal memuat model AI',
+          );
+        }
+      };
 
     initializeServices();
 
     return () => {
-      mounted = false;
-
-      if (detectionCleanupRef.current) {
-        detectionCleanupRef.current();
-      }
+      stopDetection();
 
       if (state.services.camera) {
         state.services.camera.stopCamera();
@@ -75,196 +104,295 @@ function App() {
     };
   }, []);
 
-  const startDetectionLoop = () => {
-    const detector = state.services.detector;
-    const camera = state.services.camera;
-    const generator = state.services.generator;
+  const stopDetection = () => {
+    isRunningRef.current = false;
 
-    if (!detector || !camera || !generator) {
-      return;
+    if (detectionCleanupRef.current) {
+      clearTimeout(
+        detectionCleanupRef.current,
+      );
+
+      detectionCleanupRef.current = null;
+    }
+  };
+
+  const resetPredictionState = async () => {
+    stopDetection();
+
+    actions.setDetectionResult(null);
+
+    actions.setFunFactData(null);
+
+    actions.setAppState('idle');
+
+    const {
+      detector,
+      generator,
+      camera,
+    } = state.services;
+
+    if (camera) {
+      camera.stopCamera();
     }
 
-    const detect = async () => {
-      if (!isRunningRef.current) {
+    if (generator) {
+      generator.isGenerating = false;
+    }
+
+    if (detector && detector.model) {
+      detector.model.resetStates?.();
+    }
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, 500);
+    });
+  };
+
+  const startDetectionLoop =
+    async () => {
+      const {
+        detector,
+        generator,
+        camera,
+      } = state.services;
+
+      if (
+        !detector ||
+        !camera ||
+        !generator
+      ) {
+        return;
+      }
+
+      const detectFrame =
+        async () => {
+          if (
+            !isRunningRef.current
+          ) {
+            return;
+          }
+
+          if (
+            !camera.isReady()
+          ) {
+            detectionCleanupRef.current =
+              setTimeout(
+                detectFrame,
+                APP_CONFIG.detectionRetryInterval,
+              );
+
+            return;
+          }
+
+          try {
+            const result =
+              await detector.predict(
+                camera.video,
+              );
+
+            if (
+              isValidDetection(
+                result,
+              )
+            ) {
+              stopDetection();
+
+              actions.setAppState(
+                'analyzing',
+              );
+
+              actions.setDetectionResult(
+                result,
+              );
+
+              await new Promise(
+                (resolve) => {
+                  setTimeout(
+                    resolve,
+                    APP_CONFIG.analyzingDelay,
+                  );
+                },
+              );
+
+              const fact =
+                await generator.generateFacts(
+                  result.className,
+                );
+
+              actions.setFunFactData(
+                fact,
+              );
+
+              actions.setAppState(
+                'result',
+              );
+
+              actions.setRunning(
+                false,
+              );
+
+              isRunningRef.current =
+                false;
+
+              camera.stopCamera();
+
+              return;
+            }
+
+            detectionCleanupRef.current =
+              setTimeout(
+                detectFrame,
+                1000 /
+                (camera.config?.fps ||
+                  30),
+              );
+          } catch (error) {
+            console.error(error);
+
+            actions.setError(
+              'Prediksi gagal',
+            );
+          }
+        };
+
+      detectFrame();
+    };
+
+  const handleToggleCamera =
+    async () => {
+      const camera =
+        state.services.camera;
+
+      if (!camera) {
         return;
       }
 
       try {
-        if (!camera.isReady()) {
-          requestAnimationFrame(detect);
+        if (state.isRunning) {
+          stopDetection();
+
+          camera.stopCamera();
+
+          actions.setRunning(
+            false,
+          );
+
+          actions.resetResults();
 
           return;
         }
 
-        const result = await detector.predict(camera.video);
+        await resetPredictionState();
 
-        if (isValidDetection(result)) {
-          const samePrediction =
-            lastPredictionRef.current === result.className;
+        await camera.startCamera();
 
-          if (!samePrediction) {
-            lastPredictionRef.current = result.className;
+        actions.setRunning(true);
 
-            actions.setAppState('result');
-            actions.setDetectionResult(result);
-            actions.setFunFactData(null);
+        actions.setAppState(
+          'idle',
+        );
 
-            const generatedFact = await generator.generateFacts(
-              result.className,
-            );
+        isRunningRef.current =
+          true;
 
-            actions.setFunFactData(generatedFact);
-          }
-        }
-
-        setTimeout(() => {
-          requestAnimationFrame(detect);
-        }, APP_CONFIG.detectionRetryInterval);
+        startDetectionLoop();
       } catch (error) {
         console.error(error);
 
-        actions.setError(error.message);
-
-        requestAnimationFrame(detect);
+        actions.setError(
+          'Kamera gagal dijalankan',
+        );
       }
     };
 
-    detect();
+  const handleToneChange =
+    (tone) => {
+      setCurrentTone(tone);
 
-    detectionCleanupRef.current = () => {
-      isRunningRef.current = false;
+      if (
+        state.services.generator
+      ) {
+        state.services.generator
+          .setTone(tone);
+      }
     };
-  };
 
-  const handleToggleCamera = async () => {
-    const camera = state.services.camera;
-
-    if (!camera) {
-      return;
-    }
-
-    try {
-      if (state.isRunning) {
-        isRunningRef.current = false;
-
-        camera.stopCamera();
-
-        actions.setRunning(false);
-        actions.resetResults();
-
+  const handleCopyFact =
+    async () => {
+      if (
+        !state.funFactData
+      ) {
         return;
       }
 
-      actions.setAppState('analyzing');
+      try {
+        await navigator.clipboard
+          .writeText(
+            state.funFactData,
+          );
 
-      await camera.startCamera();
-
-      isRunningRef.current = true;
-
-      actions.setRunning(true);
-
-      startDetectionLoop();
-    } catch (error) {
-      console.error(error);
-
-      actions.setError(error.message);
-
-      actions.setRunning(false);
-    }
-  };
-
-  const handleToneChange = (tone) => {
-    setCurrentTone(tone);
-
-    if (state.services.generator) {
-      state.services.generator.setTone(tone);
-    }
-  };
-
-  const handleCopyFact = async () => {
-    try {
-      if (!state.funFactData) {
-        return;
+        alert(
+          'Fakta berhasil disalin!',
+        );
+      } catch (error) {
+        console.error(error);
       }
-
-      await navigator.clipboard.writeText(state.funFactData);
-
-      alert('Fakta berhasil disalin');
-    } catch (error) {
-      console.error(error);
-
-      actions.setError('Gagal menyalin fakta');
-    }
-  };
+    };
 
   return (
     <div className="app-container">
-      <Header modelStatus={state.modelStatus} />
+      <Header
+        modelStatus={
+          state.modelStatus
+        }
+      />
 
       <main className="main-content">
         <CameraSection
-          isRunning={state.isRunning}
-          onToggleCamera={handleToggleCamera}
-          onToneChange={handleToneChange}
-          services={state.services}
-          modelStatus={state.modelStatus}
+          isRunning={
+            state.isRunning
+          }
+          onToggleCamera={
+            handleToggleCamera
+          }
+          onToneChange={
+            handleToneChange
+          }
+          services={
+            state.services
+          }
+          modelStatus={
+            state.modelStatus
+          }
           error={state.error}
-          currentTone={currentTone}
+          currentTone={
+            currentTone
+          }
         />
 
         <InfoPanel
-          appState={state.appState}
-          detectionResult={state.detectionResult}
-          funFactData={state.funFactData}
+          appState={
+            state.appState
+          }
+          detectionResult={
+            state.detectionResult
+          }
+          funFactData={
+            state.funFactData
+          }
           error={state.error}
-          onCopyFact={handleCopyFact}
+          onCopyFact={
+            handleCopyFact
+          }
         />
       </main>
 
       <footer className="footer">
-        <p>Powered by TensorFlow.js & Transformers.js</p>
+        <p>
+          Powered by TensorFlow.js
+          & Transformers.js
+        </p>
       </footer>
-
-      {state.error && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: '1rem',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            maxWidth: '380px',
-            padding: '0.875rem 1rem',
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: 'var(--radius-md)',
-            color: '#991b1b',
-            fontSize: '0.8125rem',
-            boxShadow: 'var(--shadow-lg)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            zIndex: 1000,
-          }}
-        >
-          <strong>Error:</strong> {state.error}
-
-          <button
-            onClick={() => actions.setError(null)}
-            style={{
-              marginLeft: 'auto',
-              background: 'transparent',
-              border: 'none',
-              fontSize: '1.25rem',
-              cursor: 'pointer',
-              color: '#991b1b',
-              padding: 0,
-              lineHeight: 1,
-            }}
-          >
-            ×
-          </button>
-        </div>
-      )}
     </div>
   );
 }
