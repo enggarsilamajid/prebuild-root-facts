@@ -12,10 +12,13 @@ export default defineConfig({
       includeAssets: [
         'favicon.svg',
         'robots.txt',
+        'icons/icon-192.png',
+        'icons/icon-512.png',
       ],
 
       manifest: {
         name: 'RootFacts App',
+
         short_name: 'RootFacts',
 
         description:
@@ -32,12 +35,17 @@ export default defineConfig({
         icons: [
           {
             src: '/icons/icon-192.png',
+
             sizes: '192x192',
+
             type: 'image/png',
           },
+
           {
             src: '/icons/icon-512.png',
+
             sizes: '512x512',
+
             type: 'image/png',
           },
         ],
@@ -56,6 +64,23 @@ export default defineConfig({
         globPatterns: [
           '**/*.{js,css,html,ico,png,svg,json}',
         ],
+
+        additionalManifestEntries: [
+          {
+            url: '/model/model.json',
+            revision: null,
+          },
+
+          {
+            url: '/model/weights.bin',
+            revision: null,
+          },
+
+          {
+            url: '/model/metadata.json',
+            revision: null,
+          },
+        ],
       },
 
       devOptions: {
@@ -66,6 +91,7 @@ export default defineConfig({
 
   server: {
     port: 3001,
+
     host: true,
   },
 });
