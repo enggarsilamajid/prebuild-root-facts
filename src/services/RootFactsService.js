@@ -165,7 +165,7 @@ export class RootFactsService {
       }
 
       const prompt =
-        `Ubah kalimat berikut menjadi lebih menarik tanpa mengubah makna: ${baseFact}`;
+        `deskripsikan sayuran ${baseFact}`;
 
       const result =
         await this.generator(
