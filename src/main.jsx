@@ -28,10 +28,30 @@ if ('serviceWorker' in navigator) {
         });
       }
 
-      navigator.serviceWorker.addEventListener(
-        'controllerchange',
+      registration.addEventListener(
+        'updatefound',
         () => {
-          window.location.reload();
+          const newWorker =
+            registration.installing;
+
+          if (!newWorker) return;
+
+          newWorker.addEventListener(
+            'statechange',
+            () => {
+              if (
+                newWorker.state ===
+                'installed'
+              ) {
+                if (
+                  navigator.serviceWorker
+                    .controller
+                ) {
+                  window.location.reload();
+                }
+              }
+            },
+          );
         },
       );
     } catch (error) {
