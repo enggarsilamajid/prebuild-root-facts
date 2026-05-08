@@ -1,6 +1,19 @@
-import { Sparkles, Search, CheckCircle, Lightbulb, Copy, Share2 } from 'lucide-react';
+import {
+  Sparkles,
+  Search,
+  CheckCircle,
+  Lightbulb,
+  Copy,
+  Share2
+} from 'lucide-react';
 
-function InfoPanel({ appState, detectionResult, funFactData, error, onCopyFact }) {
+function InfoPanel({
+  appState,
+  detectionResult,
+  funFactData,
+  error,
+  onCopyFact
+}) {
   const isIdle = appState === 'idle';
   const isAnalyzing = appState === 'analyzing';
   const isResult = appState === 'result';
@@ -10,10 +23,22 @@ function InfoPanel({ appState, detectionResult, funFactData, error, onCopyFact }
       <div className="idle-icon">
         <Sparkles size={40} />
       </div>
+
       <h2>Scan Sayuran</h2>
-      <p>Ketuk tombol di bawah untuk memulai dan temukan fakta menarik tentang sayuran!</p>
+
+      <p>
+        Ketuk tombol di bawah untuk memulai
+        dan temukan fakta menarik tentang sayuran!
+      </p>
+
       {error && (
-        <p style={{ color: '#ef4444', fontSize: '0.8125rem', marginTop: '1rem' }}>
+        <p
+          style={{
+            color: '#ef4444',
+            fontSize: '0.8125rem',
+            marginTop: '1rem'
+          }}
+        >
           {error}
         </p>
       )}
@@ -24,11 +49,14 @@ function InfoPanel({ appState, detectionResult, funFactData, error, onCopyFact }
     <div id="state-loading" className="result-card loading-card">
       <div className="loading-animation">
         <div className="loading-ring"></div>
+
         <div className="loading-icon">
           <Search size={24} />
         </div>
       </div>
+
       <h2>Mencari...</h2>
+
       <p>Sedang mengidentifikasi sayuran Anda</p>
     </div>
   );
@@ -36,28 +64,38 @@ function InfoPanel({ appState, detectionResult, funFactData, error, onCopyFact }
   const renderResultState = () => {
     if (!detectionResult) return null;
 
-    const confidence = Math.round(detectionResult.score * 100);
+    const confidence = Math.round(
+      detectionResult.score * 100,
+    );
 
     const renderFunFactContent = () => {
       if (funFactData === null) {
         return (
-          <div id="fun-fact-loading" className="fun-fact-loading">
+          <div
+            id="fun-fact-loading"
+            className="fun-fact-loading"
+          >
             <div className="fun-fact-loading-spinner"></div>
-            <span>Memuat fakta menarik...</span>
+
+            <span>
+              Memuat fakta menarik...
+            </span>
           </div>
         );
       }
 
       if (funFactData === 'error') {
         return (
-          <div style={{ 
-            padding: '0.75rem', 
-            background: '#fef3c7', 
-            borderRadius: 'var(--radius-sm)',
-            fontSize: '0.875rem',
-            color: '#92400e'
-          }}>
-            Gagal menghasilkan fakta menarik. Mode offline atau layanan tidak tersedia.
+          <div
+            style={{
+              padding: '0.75rem',
+              background: '#fef3c7',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '0.875rem',
+              color: '#92400e'
+            }}
+          >
+            Gagal menghasilkan fakta menarik.
           </div>
         );
       }
@@ -66,21 +104,33 @@ function InfoPanel({ appState, detectionResult, funFactData, error, onCopyFact }
     };
 
     return (
-      <div id="state-result" className="result-card result-main">
+      <div
+        id="state-result"
+        className="result-card result-main"
+      >
         <div className="detected-badge">
           <CheckCircle size={14} />
-          <span id="detected-name">{detectionResult.className}</span>
+
+          <span id="detected-name">
+            {detectionResult.className}
+          </span>
         </div>
 
         <div className="fun-fact-card">
           <div className="fun-fact-icon">
             <Lightbulb size={28} />
           </div>
+
           <div id="fun-fact-content">
-            <div id="fun-fact-text" className="fun-fact-text">
+            <div
+              id="fun-fact-text"
+              className="fun-fact-text"
+            >
               {renderFunFactContent()}
             </div>
-            {funFactData && funFactData !== 'error' && (
+
+            {funFactData &&
+              funFactData !== 'error' && (
               <button
                 id="btn-copy"
                 className="copy-btn"
@@ -94,29 +144,82 @@ function InfoPanel({ appState, detectionResult, funFactData, error, onCopyFact }
         </div>
 
         <div className="confidence-bar">
-          <span className="confidence-label">Kepercayaan</span>
+          <span className="confidence-label">
+            Kepercayaan
+          </span>
+
           <div className="confidence-track">
-            <div 
+            <div
               id="confidence-fill"
-              className="confidence-fill" 
-              style={{ width: `${confidence}%` }}
+              className="confidence-fill"
+              style={{
+                width: `${confidence}%`
+              }}
             ></div>
           </div>
-          <span id="detected-confidence" className="confidence-value">{confidence}%</span>
+
+          <span
+            id="detected-confidence"
+            className="confidence-value"
+          >
+            {confidence}%
+          </span>
         </div>
 
         <div className="share-hint">
           <Share2 size={14} />
-          <span>Salin dan bagikan ke teman!</span>
+
+          <span>
+            Salin dan bagikan ke teman!
+          </span>
+        </div>
+
+        <div
+          style={{
+            marginTop: '1rem',
+            padding: '0.75rem',
+            borderRadius: '12px',
+            background: '#f3f4f6',
+            fontSize: '0.75rem',
+            color: '#374151',
+            wordBreak: 'break-word',
+            textAlign: 'left',
+          }}
+        >
+          <strong>Debug Info</strong>
+
+          <br />
+
+          Label:
+          {' '}
+          {detectionResult.className}
+
+          <br />
+
+          Confidence:
+          {' '}
+          {confidence}%
+
+          <br />
+
+          Fun Fact:
+          <br />
+
+          {String(funFactData)}
         </div>
       </div>
     );
   };
 
   return (
-    <section className="results-section" aria-live="polite">
+    <section
+      className="results-section"
+      aria-live="polite"
+    >
       {isIdle && renderIdleState()}
+
       {isAnalyzing && renderAnalyzingState()}
+
       {isResult && renderResultState()}
     </section>
   );
