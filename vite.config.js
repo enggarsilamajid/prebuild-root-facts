@@ -17,6 +17,7 @@ export default defineConfig({
       manifest: {
         name: 'RootFacts App',
         short_name: 'RootFacts',
+
         description:
           'AI Vegetable Detection and Fun Facts App',
 
@@ -53,28 +54,7 @@ export default defineConfig({
           10 * 1024 * 1024,
 
         globPatterns: [
-          '**/*.{js,css,html,ico,png,svg,json,bin}',
-        ],
-
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/huggingface\.co\/.*/i,
-
-            handler: 'CacheFirst',
-
-            options: {
-              cacheName: 'huggingface-model-cache',
-
-              expiration: {
-                maxEntries: 20,
-                maxAgeSeconds: 60 * 60 * 24 * 30,
-              },
-
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
+          '**/*.{js,css,html,ico,png,svg,json}',
         ],
       },
 
