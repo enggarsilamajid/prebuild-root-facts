@@ -21,37 +21,34 @@ export class RootFactsService {
       if (onProgress) {
         onProgress(
           30,
-          'Menyiapkan AI generator...',
+          'Preparing AI generator...',
         );
       }
 
-      try {
-        this.generator = await pipeline(
-          'text2text-generation',
-          'Xenova/flan-t5-small',
-        );
-      } catch (error) {
-        console.warn(
-          'Model AI online tidak tersedia, menggunakan fallback lokal.',
-        );
-      }
+      this.generator = await pipeline(
+        'text2text-generation',
+        'Xenova/flan-t5-small',
+      );
 
       this.isModelLoaded = true;
 
       if (onProgress) {
         onProgress(
           100,
-          'Generator Fakta Siap',
+          'Fun Fact Generator Ready',
         );
       }
 
       return true;
     } catch (error) {
-      console.error(error);
+      console.error(
+        'AI GENERATOR ERROR:',
+        error,
+      );
 
-      this.isModelLoaded = true;
-
-      return true;
+      throw new Error(
+        'Failed to load AI generator',
+      );
     }
   }
 
@@ -66,144 +63,105 @@ export class RootFactsService {
     }
   }
 
-  getBaseFact(vegetableName) {
-    const facts = {
-      Beetroot:
-        'Beetroots are rich in natural antioxidants which are good for body health.',
+  buildPrompt(vegetableName) {
+    const prompts = {
+      normal:
+        `Write one short fun fact about ${vegetableName}.`,
 
-      Paprika:
-        'Paprika has a very high vitamin C content.',
+      funny:
+        `Write one funny fun fact about ${vegetableName}.`,
 
-      Cabbage:
-        'Cabbage is low in calories but rich in vitamins and fiber.',
+      professional:
+        `Write one scientific fact about ${vegetableName}.`,
 
-      Carrot:
-        'Carrots are famous for their beta-carotene content which is good for the eyes.',
-
-      Cauliflower:
-        'Cauliflower is rich in fiber and essential nutrients.',
-
-      Chilli:
-        'Chili contains capsaicin which gives it a spicy taste.',
-
-      Corn:
-        'Corn is a source of energy because it is rich in carbohydrates.',
-
-      Cucumber:
-        'Cucumbers have a high water content which refreshes the body.',
-
-      Eggplant:
-        'Eggplant contains antioxidants which are good for health.',
-
-      Garlic:
-        'Garlic is known to have natural antibacterial benefits.',
-
-      Ginger:
-        'Ginger is often used to help warm the body.',
-
-      Lettuce:
-        'Lettuce is often used as a fresh vegetable in salads.',
-
-      Onion:
-        'Onions contain natural compounds that are good for the body.',
-
-      Peas:
-        'Peas are rich in vegetable protein and fiber.',
-
-      Potato:
-        'Potatoes are a popular source of carbohydrates.',
-
-      Turnip:
-        'Turnips or radishes are rich in vitamins and low in calories.',
-
-      Soybean:
-        'Soybeans are the main ingredient in many nutritious foods.',
-
-      Spinach:
-        'Spinach is known for its iron content.',
+      casual:
+        `Write one casual and interesting fact about ${vegetableName}.`,
     };
 
     return (
-      facts[vegetableName] ||
-      `${vegetableName} is a vegetable that is good for body health.`
+      prompts[this.currentTone] ||
+      prompts.normal
     );
   }
 
-  applyTone(text) {
-    switch (this.currentTone) {
-    case 'funny':
-      return `😄 Fun Fact: ${text}`;
-
-    case 'professional':
-      return `📘 Scientific Fact: ${text}`;
-
-    case 'casual':
-      return `🌱 Did you know? ${text}`;
-
-    default:
-      return `✨ Interesting Facts: ${text}`;
+  cleanGeneratedText(
+    text,
+    vegetableName,
+  ) {
+    if (!text) {
+      return `${vegetableName} contains nutrients that are good for the body.`;
     }
+
+    let cleaned = text.trim();
+
+    cleaned = cleaned.replace(
+      /\n/g,
+      ' ',
+    );
+
+    cleaned = cleaned.trim();
+
+    if (
+      cleaned.length < 10
+    ) {
+      cleaned =
+        `${vegetableName} is a nutritious vegetable that is good for health.`;
+    }
+
+    return cleaned;
   }
 
-  async generateFacts(vegetableName) {
-    if (this.isGenerating) {
+  async generateFacts(
+    vegetableName,
+  ) {
+    if (
+      this.isGenerating
+    ) {
       return null;
     }
 
     this.isGenerating = true;
 
     try {
-      const baseFact =
-        this.getBaseFact(
+      const prompt =
+        this.buildPrompt(
           vegetableName,
         );
-
-      if (!this.generator) {
-        return this.applyTone(
-          baseFact,
-        );
-      }
-
-      const prompt =
-        `tell me about vegetables ${baseFact}`;
 
       const result =
         await this.generator(
           prompt,
           {
-            max_new_tokens: 40,
-            temperature: 0.5,
-            top_p: 0.8,
-            do_sample: false,
+            max_new_tokens: 60,
+            temperature: 0.7,
+            top_p: 0.9,
+            do_sample: true,
           },
         );
 
       let generatedText =
-        result?.[0]?.generated_text || '';
+        result?.[0]
+          ?.generated_text || '';
 
       generatedText =
         generatedText
           .replace(prompt, '')
           .trim();
 
-      if (
-        !generatedText ||
-        generatedText.length < 10
-      ) {
-        generatedText = baseFact;
-      }
-
-      return this.applyTone(
-        generatedText,
-      );
-    } catch (error) {
-      console.error(error);
-
-      return this.applyTone(
-        this.getBaseFact(
+      generatedText =
+        this.cleanGeneratedText(
+          generatedText,
           vegetableName,
-        ),
+        );
+
+      return generatedText;
+    } catch (error) {
+      console.error(
+        'Generate fact error:',
+        error,
       );
+
+      return `${vegetableName} is rich in nutrients and beneficial for health.`;
     } finally {
       this.isGenerating = false;
     }
