@@ -1,7 +1,7 @@
 import { Sprout } from 'lucide-react';
 
 function Header({ modelStatus }) {
-  const isModelReady = modelStatus === 'Model AI Siap';
+  const isModelReady = modelStatus === 'AI model is ready';
   
   return (
     <header className="header">
