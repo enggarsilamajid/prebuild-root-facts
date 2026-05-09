@@ -24,11 +24,11 @@ function InfoPanel({
         <Sparkles size={40} />
       </div>
 
-      <h2>Scan Sayuran</h2>
+      <h2>Scan Vegetables</h2>
 
       <p>
-        Ketuk tombol di bawah untuk memulai
-        dan temukan fakta menarik tentang sayuran!
+        Click button bellow to start
+        and find out interesting facts about vegetables!
       </p>
 
       {error && (
@@ -55,9 +55,9 @@ function InfoPanel({
         </div>
       </div>
 
-      <h2>Mencari...</h2>
+      <h2>Searching...</h2>
 
-      <p>Sedang mengidentifikasi sayuran Anda</p>
+      <p>Identifying vegetables...</p>
     </div>
   );
 
@@ -78,7 +78,7 @@ function InfoPanel({
             <div className="fun-fact-loading-spinner"></div>
 
             <span>
-              Memuat fakta menarik...
+              Loading interesting facts...
             </span>
           </div>
         );
@@ -95,7 +95,7 @@ function InfoPanel({
               color: '#92400e'
             }}
           >
-            Gagal menghasilkan fakta menarik.
+            Failed to find interesting facts.
           </div>
         );
       }
@@ -135,7 +135,7 @@ function InfoPanel({
                 id="btn-copy"
                 className="copy-btn"
                 onClick={onCopyFact}
-                title="Salin fakta"
+                title="Copy facts"
               >
                 <Copy size={18} />
               </button>
@@ -170,7 +170,7 @@ function InfoPanel({
           <Share2 size={14} />
 
           <span>
-            Salin dan bagikan ke teman!
+            Copy and share to friends!
           </span>
         </div>
 
