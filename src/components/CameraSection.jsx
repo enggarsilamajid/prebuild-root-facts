@@ -51,9 +51,9 @@ function CameraSection({
     }
   };
 
-  const isModelReady = modelStatus === 'Model AI Siap';
+  const isModelReady = modelStatus === 'AI model is ready';
   const buttonDisabled = !isModelReady;
-  const buttonText = isRunning ? 'Stop Scan' : 'Mulai Scan';
+  const buttonText = isRunning ? 'Stop Scan' : 'Start Scan';
 
   return (
     <section className="camera-section" aria-label="Camera Feed and Controls">
@@ -81,7 +81,7 @@ function CameraSection({
           {!isRunning && (
             <div className="camera-placeholder">
               <Camera size={48} />
-              <p>Kamera tidak aktif</p>
+              <p>Camera is off</p>
               {error && (
                 <p style={{ color: '#ef4444', fontSize: '0.8125rem', marginTop: '0.5rem' }}>
                   {error}
@@ -113,8 +113,8 @@ function CameraSection({
               onChange={(e) => handleCameraChange(e.target.value)}
               disabled={isRunning}
             >
-              <option value="default">Belakang</option>
-              <option value="front">Depan</option>
+              <option value="default">Rear</option>
+              <option value="front">Front</option>
             </select>
           </div>
 
