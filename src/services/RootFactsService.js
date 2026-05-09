@@ -69,63 +69,63 @@ export class RootFactsService {
   getBaseFact(vegetableName) {
     const facts = {
       Beetroot:
-        'Bit kaya antioksidan alami yang baik untuk kesehatan tubuh.',
+        'Beetroots are rich in natural antioxidants which are good for body health.',
 
       Paprika:
-        'Paprika memiliki kandungan vitamin C yang sangat tinggi.',
+        'Paprika has a very high vitamin C content.',
 
       Cabbage:
-        'Kubis rendah kalori tetapi kaya vitamin dan serat.',
+        'Cabbage is low in calories but rich in vitamins and fiber.',
 
       Carrot:
-        'Wortel terkenal karena kandungan beta-karoten yang baik untuk mata.',
+        'Carrots are famous for their beta-carotene content which is good for the eyes.',
 
       Cauliflower:
-        'Kembang kol kaya serat dan nutrisi penting.',
+        'Cauliflower is rich in fiber and essential nutrients.',
 
       Chilli:
-        'Cabai mengandung capsaicin yang memberikan rasa pedas.',
+        'Chili contains capsaicin which gives it a spicy taste.',
 
       Corn:
-        'Jagung menjadi sumber energi karena kaya karbohidrat.',
+        'Corn is a source of energy because it is rich in carbohydrates.',
 
       Cucumber:
-        'Mentimun memiliki kandungan air tinggi yang menyegarkan tubuh.',
+        'Cucumbers have a high water content which refreshes the body.',
 
-      eggplant:
-        'Terong mengandung antioksidan yang baik untuk kesehatan.',
+      Eggplant:
+        'Eggplant contains antioxidants which are good for health.',
 
       Garlic:
-        'Bawang putih dikenal memiliki manfaat antibakteri alami.',
+        'Garlic is known to have natural antibacterial benefits.',
 
       Ginger:
-        'Jahe sering digunakan untuk membantu menghangatkan tubuh.',
+        'Ginger is often used to help warm the body.',
 
       Lettuce:
-        'Selada sering digunakan sebagai sayuran segar dalam salad.',
+        'Lettuce is often used as a fresh vegetable in salads.',
 
       Onion:
-        'Bawang mengandung senyawa alami yang baik untuk tubuh.',
+        'Onions contain natural compounds that are good for the body.',
 
       Peas:
-        'Kacang polong kaya protein nabati dan serat.',
+        'Peas are rich in vegetable protein and fiber.',
 
       Potato:
-        'Kentang merupakan sumber karbohidrat yang populer.',
+        'Potatoes are a popular source of carbohydrates.',
 
       Turnip:
-        'Turnip atau lobak kaya vitamin dan rendah kalori.',
+        'Turnips or radishes are rich in vitamins and low in calories.',
 
       Soybean:
-        'Kedelai menjadi bahan utama banyak makanan bergizi.',
+        'Soybeans are the main ingredient in many nutritious foods.',
 
       Spinach:
-        'Bayam terkenal karena kandungan zat besinya.',
+        'Spinach is known for its iron content.',
     };
 
     return (
       facts[vegetableName] ||
-      `${vegetableName} merupakan sayuran yang baik untuk kesehatan tubuh.`
+      `${vegetableName} is a vegetable that is good for body health.`
     );
   }
 
@@ -135,13 +135,13 @@ export class RootFactsService {
       return `😄 Fun Fact: ${text}`;
 
     case 'professional':
-      return `📘 Fakta Ilmiah: ${text}`;
+      return `📘 Scientific Fact: ${text}`;
 
     case 'casual':
-      return `🌱 Tahukah kamu? ${text}`;
+      return `🌱 Did you know? ${text}`;
 
     default:
-      return `✨ Fakta Menarik: ${text}`;
+      return `✨ Interesting Facts: ${text}`;
     }
   }
 
@@ -165,7 +165,7 @@ export class RootFactsService {
       }
 
       const prompt =
-        `deskripsikan sayuran ${baseFact}`;
+        `tell me about vegetables ${baseFact}`;
 
       const result =
         await this.generator(
