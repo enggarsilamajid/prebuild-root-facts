@@ -52,7 +52,7 @@ function App() {
             new RootFactsService();
 
           actions.setModelStatus(
-            'Memuat model deteksi...',
+            'Loading detection model...',
           );
 
           await detector.loadModel(
@@ -64,7 +64,7 @@ function App() {
           );
 
           actions.setModelStatus(
-            'Memuat AI generator...',
+            'Loading AI generator...',
           );
 
           await generator.loadModel(
@@ -82,13 +82,13 @@ function App() {
           });
 
           actions.setModelStatus(
-            'Model AI Siap',
+            'AI model is ready',
           );
         } catch (error) {
           console.error(error);
 
           actions.setError(
-            'Gagal memuat model AI',
+            'Failed to load AI model',
           );
         }
       };
@@ -250,7 +250,7 @@ function App() {
             console.error(error);
 
             actions.setError(
-              'Prediksi gagal',
+              'Failed to predict',
             );
           }
         };
@@ -300,7 +300,7 @@ function App() {
         console.error(error);
 
         actions.setError(
-          'Kamera gagal dijalankan',
+          'Failed to run camera',
         );
       }
     };
@@ -332,7 +332,7 @@ function App() {
           );
 
         alert(
-          'Fakta berhasil disalin!',
+          'Facts is copied!',
         );
       } catch (error) {
         console.error(error);
